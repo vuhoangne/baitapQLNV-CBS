@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Nhân Viên</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 10px;
+        }
+        .btn-custom {
+            border-radius: 20px;
+            padding: 8px 20px;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            border-top: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+        .alert-custom {
+            border-radius: 10px;
+            border: none;
+        }
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1><i class="fas fa-users me-3"></i>Quản Lý Nhân Viên</h1>
+                    <p class="mb-0">Hệ thống quản lý nhân viên với AJAX</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Alert Messages -->
+        <div id="alertContainer"></div>
+
+        <!-- Add/Edit Employee Form -->
+        <div class="form-section">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>
+                        <span id="formTitle">Thêm Nhân Viên Mới</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="employeeForm">
+                        <input type="hidden" id="employeeId" value="">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="tenNhanVien" class="form-label">Tên nhân viên <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="tenNhanVien" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="maNV" class="form-label">Mã NV <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="maNV" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="chucVu" class="form-label">Chức vụ</label>
+                                    <select class="form-select" id="chucVu">
+                                        <option value="">-- Chọn chức vụ --</option>
+                                        <option value="Nhân viên">Nhân viên</option>
+                                        <option value="Trưởng phòng">Trưởng phòng</option>
+                                        <option value="Giám đốc">Giám đốc</option>
+                                        <option value="Phó giám đốc">Phó giám đốc</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="heSoLuong" class="form-label">Hệ số lương</label>
+                                    <input type="number" class="form-control" id="heSoLuong" step="0.1" min="0">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="luongCoBan" class="form-label">Lương cơ bản</label>
+                                    <input type="number" class="form-control" id="luongCoBan" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="soGioLamTrongThang" class="form-label">Số giờ làm trong tháng</label>
+                                    <input type="number" class="form-control" id="soGioLamTrongThang" min="0">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary btn-custom me-2" id="cancelBtn">
+                                <i class="fas fa-times me-1"></i>Hủy
+                            </button>
+                            <button type="submit" class="btn btn-success btn-custom" id="submitBtn">
+                                <i class="fas fa-save me-1"></i>
+                                <span id="submitText">Thêm nhân viên</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employee List -->
+        <div class="card">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Danh Sách Nhân Viên
+                </h5>
+                <button type="button" class="btn btn-light btn-sm btn-custom" id="refreshBtn">
+                    <i class="fas fa-sync-alt me-1"></i>Làm mới
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Loading indicator -->
+                <div class="loading" id="loadingIndicator">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="mt-2">Đang tải dữ liệu...</p>
+                </div>
+
+                <!-- Employee Table -->
+                <div class="table-responsive" id="tableContainer">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã NV</th>
+                                <th>Tên NV</th>
+                                <th>Chức vụ</th>
+                                <th>Hệ số</th>
+                                <th>Lương cơ bản</th>
+                                <th>Số giờ/tháng</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeeTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                    <div id="noDataMessage" class="text-center text-muted py-4" style="display: none;">
+                        <i class="fas fa-users fa-3x mb-3"></i>
+                        <p>Chưa có nhân viên nào trong hệ thống</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simulate API endpoints
+        const API_BASE_URL = 'https://svcy.myclass.vn/swagger/ui/index#!/QuanLyNhanVienApi';
+        
+        // Mock data for demonstration
+        let employees = [
+            {
+                maNV: "NV001",
+                tenNhanVien: "Nguyễn Văn An",
+                chucVu: "Trưởng phòng",
+                heSoLuong: 2.5,
+                luongCoBan: 8000000,
+                soGioLamTrongThang: 180
+            },
+            {
+                maNV: "NV002", 
+                tenNhanVien: "Trần Thị Bình",
+                chucVu: "Nhân viên",
+                heSoLuong: 1.8,
+                luongCoBan: 6000000,
+                soGioLamTrongThang: 160
+            }
+        ];
+
+        // DOM elements
+        const employeeForm = document.getElementById('employeeForm');
+        const employeeTableBody = document.getElementById('employeeTableBody');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const tableContainer = document.getElementById('tableContainer');
+        const noDataMessage = document.getElementById('noDataMessage');
+        const alertContainer = document.getElementById('alertContainer');
+        const formTitle = document.getElementById('formTitle');
+        const submitText = document.getElementById('submitText');
+        const submitBtn = document.getElementById('submitBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        // Show loading
+        function showLoading() {
+            loadingIndicator.style.display = 'block';
+            tableContainer.style.display = 'none';
+        }
+
+        // Hide loading
+        function hideLoading() {
+            loadingIndicator.style.display = 'none';
+            tableContainer.style.display = 'block';
+        }
+
+        // Show alert message
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show alert-custom`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Simulate API call with delay
+        function simulateApiCall(callback, delay = 1000) {
+            setTimeout(callback, delay);
+        }
+
+        // Load employees list
+        function loadEmployees() {
+            showLoading();
+            
+            simulateApiCall(() => {
+                hideLoading();
+                renderEmployeeTable();
+            }, 800);
+        }
+
+        // Render employee table
+        function renderEmployeeTable() {
+            if (employees.length === 0) {
+                employeeTableBody.innerHTML = '';
+                noDataMessage.style.display = 'block';
+                return;
+            }
+
+            noDataMessage.style.display = 'none';
+            employeeTableBody.innerHTML = employees.map((emp, index) => `
+                <tr>
+                    <td><strong>${emp.maNV}</strong></td>
+                    <td>${emp.tenNhanVien}</td>
+                    <td><span class="badge bg-primary">${emp.chucVu || 'Chưa xác định'}</span></td>
+                    <td>${emp.heSoLuong || 'N/A'}</td>
+                    <td>${emp.luongCoBan ? emp.luongCoBan.toLocaleString('vi-VN') + ' VNĐ' : 'N/A'}</td>
+                    <td>${emp.soGioLamTrongThang || 'N/A'}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editEmployee(${index})" title="Sửa">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee(${index})" title="Xóa">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Add or update employee
+        function saveEmployee(employeeData) {
+            const employeeId = document.getElementById('employeeId').value;
+            
+            if (employeeId) {
+                // Update existing employee
+                const index = parseInt(employeeId);
+                employees[index] = employeeData;
+                showAlert('Cập nhật thông tin nhân viên thành công!', 'success');
+            } else {
+                // Add new employee
+                employees.push(employeeData);
+                showAlert('Thêm nhân viên mới thành công!', 'success');
+            }
+            
+            resetForm();
+            renderEmployeeTable();
+        }
+
+        // Edit employee  
+        window.editEmployee = function(index) {
+            const emp = employees[index];
+            
+            document.getElementById('employeeId').value = index;
+            document.getElementById('tenNhanVien').value = emp.tenNhanVien;
+            document.getElementById('maNV').value = emp.maNV;
+            document.getElementById('chucVu').value = emp.chucVu || '';
+            document.getElementById('heSoLuong').value = emp.heSoLuong || '';
+            document.getElementById('luongCoBan').value = emp.luongCoBan || '';
+            document.getElementById('soGioLamTrongThang').value = emp.soGioLamTrongThang || '';
+            
+            formTitle.textContent = 'Cập Nhật Thông Tin Nhân Viên';
+            document.getElementById('submitText').textContent = 'Cập nhật';
+            submitBtn.className = 'btn btn-warning btn-custom';
+            
+            // Scroll to form
+            document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Delete employee
+        window.deleteEmployee = function(index) {
+            if (confirm('Bạn có chắc chắn muốn xóa nhân viên này?')) {
+                const employeeName = employees[index].tenNhanVien;
+                employees.splice(index, 1);
+                showAlert(`Đã xóa nhân viên "${employeeName}" thành công!`, 'warning');
+                renderEmployeeTable();
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            employeeForm.reset();
+            document.getElementById('employeeId').value = '';
+            formTitle.textContent = 'Thêm Nhân Viên Mới';
+            submitText.textContent = 'Thêm nhân viên';
+            submitBtn.className = 'btn btn-success btn-custom';
+        }
+
+        // Form submission
+        employeeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const employeeData = {
+                tenNhanVien: document.getElementById('tenNhanVien').value.trim(),
+                maNV: document.getElementById('maNV').value.trim(),
+                chucVu: document.getElementById('chucVu').value,
+                heSoLuong: parseFloat(document.getElementById('heSoLuong').value) || null,
+                luongCoBan: parseInt(document.getElementById('luongCoBan').value) || null,
+                soGioLamTrongThang: parseInt(document.getElementById('soGioLamTrongThang').value) || null
+            };
+
+            // Validate required fields
+            if (!employeeData.tenNhanVien || !employeeData.maNV) {
+                showAlert('Vui lòng điền đầy đủ thông tin bắt buộc!', 'danger');
+                return;
+            }
+
+            // Check duplicate employee code (when adding new)
+            const employeeId = document.getElementById('employeeId').value;
+            if (!employeeId) {
+                const isDuplicate = employees.some(emp => emp.maNV === employeeData.maNV);
+                if (isDuplicate) {
+                    showAlert('Mã nhân viên đã tồn tại!', 'danger');
+                    return;
+                }
+            }
+
+            // Simulate API call
+            submitBtn.disabled = true;
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
+            
+            simulateApiCall(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                saveEmployee(employeeData);
+            }, 1000);
+        });
+
+        // Cancel button
+        cancelBtn.addEventListener('click', resetForm);
+
+        // Refresh button
+        refreshBtn.addEventListener('click', function() {
+            showAlert('Đã làm mới danh sách nhân viên!', 'info');
+            loadEmployees();
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEmployees();
+            showAlert('Chào mừng bạn đến với hệ thống quản lý nhân viên!', 'info');
+        });
+    </script>
+</body>
+</html>
